@@ -9,6 +9,15 @@ The descriptive analysis for the manuscript was performed using R. The full code
 
 ## Datasets  
 ### CSV files  
--  _dataset_diagnosesgen_all.csv_ is the foundational dataset where every row relates to a single Strangles diagnosis
+-  **_dataset_diagnosesgen_all.csv_** is the foundational dataset where every row relates to a single Strangles diagnosis
     -  `strangleslogid` denotes the unique identifier for a single strangles diagnosis
+    -  `eventdate` denotes the earliest date associated with each diagnosis
+    -  `submittingvet_prim` denotes the primary veterinary practice submitting samples for each diagnosis
+    -  `nuts3gid` denotes the NUTS3 gid identifier to link to the NUTS3 spatial polygon dataset _(see the **GIS** section below)_
+    -  `breedgen` denotes the general breed of the affected horse
+    -  `sexgen` denotes the sex of the affected horse
+    -  `premesiscategory` denotes the premises category where the affected horse was present at diagnosis
+    -  `age` denotes the age (in years) of the affected horse
+    -  `submittinglab_prim` denotes the primary laboratory submitting data relating to the diagnosis
+    -  `result` denotes the distinct aggregated test methods used for _S.equi_ positive results for each diagnosis
 ### GIS (Spatial) datasets
