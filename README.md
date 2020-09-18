@@ -35,3 +35,4 @@ The descriptive analysis for the manuscript was performed using R. The full code
 
 
 ### GIS (Spatial) datasets
+-  **_nuts3_regions.shp_** is a shapefile of the polygons making up the NUTS3 regions of the United Kingdom specifically. The European Petroleum Survey Group (EPSG) coordinate system code for this dataset is 4326 (i.e. WGS84). It contains a unique identifier `gid` which can be linked to csv datasets in this repository and the `nuts_name` associated with the area. This NUTS3 region shapefile has been ammended slightly to facilitate analysis and depiction of data on the UK regional scale. In particular smaller urban regions have been merged with their peri-urban/rural neighbours. For access to maintained NUTS datasets please go [here](https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/nuts) and observe required usage rights. 
