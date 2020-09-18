@@ -9,6 +9,6 @@ The descriptive analysis for the manuscript was performed using R. The full code
 
 ## Datasets  
 ### CSV files  
-*  _dataset_diagnosesgen_all.csv_ is the foundational dataset where every row relates to a single Strangles diagnosis
-  *  `strangleslogid` denotes the unique identifier for a single strangles diagnosis
+-  _dataset_diagnosesgen_all.csv_ is the foundational dataset where every row relates to a single Strangles diagnosis
+    -  `strangleslogid` denotes the unique identifier for a single strangles diagnosis
 ### GIS (Spatial) datasets
