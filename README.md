@@ -19,5 +19,17 @@ The descriptive analysis for the manuscript was performed using R. The full code
     -  `premesiscategory` denotes the premises category where the affected horse was present at diagnosis
     -  `age` denotes the age (in years) of the affected horse
     -  `submittinglab_prim` denotes the primary laboratory submitting data relating to the diagnosis
-    -  `result` denotes the distinct aggregated test methods used for _S.equi_ positive results for each diagnosis
+    -  `result` denotes the distinct aggregated test methods used for _S.equi_ positive results for each diagnosis  
+
+-  **_dataset_diagnosessampletype.csv_** represents the sample types (`sampletype`) and sample locations (horse - `samplelocation`) for each diagnosis (`strangleslogid`) where multiple lines may represent a single diagnosis - i.e. multiple sample types and from multiple locations were registered per diagnosis.  
+
+-  **_dataset_clinicalsigns.csv_** represents the clinical signs noted for each strangles diagnosis. As with the _dataset_diagnosessampletype_ dataset, multiple clinical signs (`cx`) are associated with a distinct diagnosis (`strangleslogid`).
+
+-  **_dataset_samplereason.csv_** represents the reason for sampling (`samplereason`) with multiple rows constituting a strangles diagnosis (`strangleslogid`).
+
+-  **_dataset_sampledecisions_type.csv_** represents the aggregated reason for sampling (`samplereasons2`) with a single rows constituting a strangles diagnosis (`strangleslogid`), and in this case diagnoses are ommitted where *undefined* was the only associated reason for sampling.
+-  **_dataset_sampletestoutcome.csv_** 
+-  **_dataset_nuts3_base.csv_** 
+
+
 ### GIS (Spatial) datasets
