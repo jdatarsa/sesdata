@@ -4,8 +4,8 @@ library(janitor)
 library(ggplot2)
 library(tidyr)
 library(UpSetR)
-library(PropCIs)
 
+#import datasets for analysis
 dataset_diagnosesgen_all <-read.csv(text=getURL("https://raw.githubusercontent.com/jdatarsa/sesdata/master/dataset_diagnosesgen_all.csv"))
 dataset_diagnosessampletype <-read.csv(text=getURL("https://raw.githubusercontent.com/jdatarsa/sesdata/master/dataset_diagnosessampletype.csv"))
 dataset_clinicalsigns <-read.csv(text=getURL("https://raw.githubusercontent.com/jdatarsa/sesdata/master/dataset_clinicalsigns.csv"))
