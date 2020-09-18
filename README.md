@@ -27,9 +27,11 @@ The descriptive analysis for the manuscript was performed using R. The full code
 
 -  **_dataset_samplereason.csv_** represents the reason for sampling (`samplereason`) with multiple rows constituting a strangles diagnosis (`strangleslogid`).
 
--  **_dataset_sampledecisions_type.csv_** represents the aggregated reason for sampling (`samplereasons2`) with a single rows constituting a strangles diagnosis (`strangleslogid`), and in this case diagnoses are ommitted where *undefined* was the only associated reason for sampling.
--  **_dataset_sampletestoutcome.csv_** 
--  **_dataset_nuts3_base.csv_** 
+-  **_dataset_sampledecisions_type.csv_** represents the aggregated reason for sampling (`samplereasons2`) with a single row constituting a strangles diagnosis (`strangleslogid`), and in this case diagnoses are ommitted where *undefined* was the only associated reason for sampling. Furthermore the `sampletypes2` field denotes the aggregated sample types that were associated with each diagnosis.
+
+-  **_dataset_sampletestoutcome.csv_** represents the _S.equi_ culture (`culture`) and real-time PCR (`qPCR`) results for each sample where at least one of these tests had a positive result. `sampledetailid` is the unique identifier for each sample tested and is not used further in this analysis.
+
+-  **_dataset_nuts3_base.csv_** is used to facilitate aggregation of diagnoses to spatial locations using table joins (rather than spatial joins) and the `gid` field correlates to the `gid` field in the GIS dataset _nuts3_regions.shp_ below. `nuts_name` denotes the name of the region.
 
 
 ### GIS (Spatial) datasets
