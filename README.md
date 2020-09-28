@@ -8,7 +8,7 @@ This repository contains datasets and code used for the manuscript as titled abo
 Abigail McGlennon, Andrew Waller, Kristien Verheyen, Josh Slater, John Grewar, David Aanensen & Richard Newton (2020) Surveillance of equine strangles in the United Kingdom between 2015 and 2019 based on laboratory detection of *Streptococcus equi* \[Dataset]\. Royal Veterinary College. https://zenodo.org/badge/latestdoi/290019559
 
 ## R Code  
-The descriptive analysis for the manuscript was performed using R. The full code is available in the *manuscriptcode.R* file. Links to the csv datasest used are included in the code as well as the required libraries. The code published here is in a format that may assist entry-level R users in navigating through the outcomes. Piping using _dplyr_ was used throughout to create a step-for-step code base.
+The descriptive analysis for the manuscript was performed using R. The full code is available in the *manuscriptcode.R* file. Links to the csv dataset used are included in the code as well as the required libraries. The code published here is in a format that may assist entry-level R users in navigating through the outcomes. Piping using _dplyr_ was used throughout to create a step-for-step code base.
 
 ## Datasets  
 ### CSV files  
@@ -30,7 +30,7 @@ The descriptive analysis for the manuscript was performed using R. The full code
 
 -  **_dataset_samplereason.csv_** represents the reason for sampling (`samplereason`) with multiple rows constituting a strangles diagnosis (`strangleslogid`).
 
--  **_dataset_sampledecisions_type.csv_** represents the aggregated reason for sampling (`samplereasons2`) with a single row constituting a strangles diagnosis (`strangleslogid`), and in this case diagnoses are ommitted where *undefined* was the only associated reason for sampling. Furthermore the `sampletypes2` field denotes the aggregated sample types that were associated with each diagnosis.
+-  **_dataset_sampledecisions_type.csv_** represents the aggregated reason for sampling (`samplereasons2`) with a single row constituting a strangles diagnosis (`strangleslogid`), and in this case diagnoses are omitted where *undefined* was the only associated reason for sampling. Furthermore, the `sampletypes2` field denotes the aggregated sample types that were associated with each diagnosis.
 
 -  **_dataset_sampletestoutcome.csv_** represents the _S.equi_ culture (`culture`) and real-time PCR (`qPCR`) results for each sample where at least one of these tests had a positive result. `sampledetailid` is the unique identifier for each sample tested and is not used further in this analysis.
 
@@ -38,4 +38,4 @@ The descriptive analysis for the manuscript was performed using R. The full code
 
 
 ### GIS (Spatial) datasets
--  **_nuts3_regions.shp_** is a shapefile of the polygons making up the NUTS3 regions of the United Kingdom specifically. The European Petroleum Survey Group (EPSG) coordinate system code for this dataset is 4326 (i.e. WGS84). It contains a unique identifier `gid` which can be linked to csv datasets in this repository and the `nuts_name` associated with the area. This NUTS3 region shapefile has been ammended slightly to facilitate analysis and depiction of data on the UK regional scale. In particular smaller urban regions have been merged with their peri-urban/rural neighbours. For access to maintained NUTS datasets please go [here](https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/nuts) and observe required usage rights. 
+-  **_nuts3_regions.shp_** is a shapefile of the polygons making up the NUTS3 regions of the United Kingdom specifically. The European Petroleum Survey Group (EPSG) coordinate system code for this dataset is 4326 (i.e. WGS84). It contains a unique identifier `gid` which can be linked to csv datasets in this repository and the `nuts_name` associated with the area. This NUTS3 region shapefile has been amended slightly to facilitate analysis and depiction of data on the UK regional scale. In particular, smaller urban regions have been merged with their peri-urban/rural neighbours. For access to maintained NUTS datasets please go [here](https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/nuts) and observe required usage rights. 
