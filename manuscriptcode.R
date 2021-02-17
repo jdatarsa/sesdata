@@ -1,24 +1,69 @@
-library(RCurl)
+library(httr)
 library(dplyr)
 library(janitor)
 library(ggplot2)
 library(tidyr)
 library(UpSetR)
 
-#import datasets for analysis
-dataset_diagnosesgen_all <-read.csv(text=getURL("https://raw.githubusercontent.com/jdatarsa/sesdata/master/dataset_diagnosesgen_all.csv"))
-dataset_diagnosessampletype <-read.csv(text=getURL("https://raw.githubusercontent.com/jdatarsa/sesdata/master/dataset_diagnosessampletype.csv"))
-dataset_clinicalsigns <-read.csv(text=getURL("https://raw.githubusercontent.com/jdatarsa/sesdata/master/dataset_clinicalsigns.csv"))
-dataset_samplereason <-read.csv(text=getURL("https://raw.githubusercontent.com/jdatarsa/sesdata/master/dataset_samplereason.csv"))
-dataset_sampledecisions_type <-read.csv(text=getURL("https://raw.githubusercontent.com/jdatarsa/sesdata/master/dataset_sampledecision.csv"))
-dataset_sampletestoutcome <-read.csv(text=getURL("https://raw.githubusercontent.com/jdatarsa/sesdata/master/dataset_sampletestoutcomes.csv"))
-dataset_nuts3_base <-read.csv(text=getURL("https://raw.githubusercontent.com/jdatarsa/sesdata/master/dataset_nuts3_base.csv"))
+#Retrieval of data used in analysis####
+# Take note of your working directory - datafiles will be downloaded to this location
+getwd()
+
+#Online from GitHUB
+# Import and unzip repository into working directory
+url <- "https://github.com/jdatarsa/sesdata/archive/master.zip"
+GET(url, write_disk("manuscriptdata.zip", overwrite = TRUE))
+
+#unzip the zip file directly into working directory
+#ensure that the outcome is a folder with associated data called sesdata-master in the working directory
+
+dataset_diagnosesgen_all <-read.csv('./sesdata-master/dataset_diagnosesgen_all.csv')
+dataset_diagnosessampletype <-read.csv('./sesdata-master/dataset_diagnosessampletype.csv')
+dataset_clinicalsigns <-read.csv('./sesdata-master/dataset_clinicalsigns.csv')
+dataset_samplereason <-read.csv('./sesdata-master/dataset_samplereason.csv')
+dataset_sampledecisions_type <-read.csv('./sesdata-master/dataset_sampledecision.csv')
+dataset_sampletestoutcome <-read.csv('./sesdata-master/dataset_sampletestoutcomes.csv')
+dataset_nuts3_base <-read.csv('./sesdata-master/dataset_nuts3_base.csv')
 
 # Results - Sample and diagnostic information
 # Sample and diagnostic information - diagnoses per year
 dataset_diagnosesgen_all %>% 
   group_by(year = format(as.Date(dataset_diagnosesgen_all$eventdate),"%Y")) %>% 
   summarise(totaldiagnoses_byyear = n())
+
+#Table 2: Total diagnoses
+nrow(dataset_diagnosesgen_all)
+
+#Table 2: Total positive samples
+nrow(dataset_diagnosessampletype)
+
+
+#Table 2: Sample types and locations of swab
+# Sample type
+dataset_diagnosessampletype %>% 
+  group_by(sampletype) %>% 
+  summarise(total = n()) %>%
+  mutate(percent = total / sum(total)*100) %>%
+  mutate (totalreported = sum(total)) %>% rowwise() %>% 
+  mutate(lowerciperc = prop.test (total, totalreported)$conf.int[1]*100,
+         upperciperc = prop.test(total, totalreported)$conf.int[2]*100)
+
+#Swab locations
+dataset_diagnosessampletype %>% 
+  filter(sampletype == 'swab') %>% 
+  group_by(samplelocation) %>% 
+  dplyr::summarise(total = n(), 
+                   perc = as.numeric(round(n()/nrow(dataset_diagnosessampletype %>% 
+                                                      filter(sampletype == 'swab'))*100,1))) %>% 
+  mutate(percprint = paste(perc,"%",sep ="")) %>% arrange(., desc(total)) %>%
+  filter(samplelocation == 'nasopharyngeal' | samplelocation == 'nasal' | samplelocation == 'abscess'| samplelocation == 'unspecified') %>%
+  mutate(samplelocation = as.character(samplelocation)) %>% 
+  rbind(c("other",nrow(dataset_diagnosessampletype %>% 
+                         filter(sampletype == 'swab')) - sum(as.numeric(.$total)),100-sum(as.numeric(.$perc)),paste(100-sum(as.numeric(.$perc)),"%",sep=""))) %>% 
+  select(-perc)  %>% mutate(total = as.numeric(total)) %>% 
+  dplyr::mutate(totalreported = sum(total)) %>% rowwise() %>%  
+  mutate(lowerciperc = prop.test (total, totalreported)$conf.int[1]*100,
+         upperciperc = prop.test(total, totalreported)$conf.int[2]*100)
 
 #Table 2: Diagnostic test(s) requested
 dataset_diagnosesgen_all %>% 
@@ -29,6 +74,24 @@ dataset_diagnosesgen_all %>%
   mutate (totalreported = sum(total)) %>% rowwise() %>%
   mutate(lowerciperc = prop.test (total, totalreported)$conf.int[1]*100,
          upperciperc = prop.test(total, totalreported)$conf.int[2]*100)
+
+#Table 2: Reason for sampling
+#Number of diagnoses that had reason for sampling
+dataset_samplereason %>% 
+       filter(samplereason != "undefined") %>% 
+       select(strangleslogid) %>% distinct() %>% dplyr::summarise(total = n()) %>% 
+  mutate(lowerciperc = prop.test (total, nrow(dataset_diagnosesgen_all))$conf.int[1]*100,
+         upperciperc = prop.test(total, nrow(dataset_diagnosesgen_all))$conf.int[2]*100)
+
+dataset_samplereason %>% 
+  filter(samplereason != "undefined") %>% group_by(samplereason) %>% 
+  summarise(total = n(), perc = as.numeric(round(n()/nrow(dataset_samplereason%>% 
+                                                            filter(samplereason != "undefined"))*100,1))) %>% 
+  mutate(percent = total / sum(total)*100) %>%
+  mutate (totalreported = sum(total)) %>% rowwise() %>% 
+  mutate(lowerciperc = prop.test (total, totalreported)$conf.int[1]*100,
+         upperciperc = prop.test(total, totalreported)$conf.int[2]*100)
+
 
 #Table 2: Horse signalment
 #Sex
@@ -56,11 +119,21 @@ age.avail<-dataset_diagnosesgen_all %>%
   filter(!is.na(age)) %>% 
   select(age)
 
+age.avail %>% dplyr::summarise(total = n()) %>% 
+  mutate(lowerciperc = prop.test (total, nrow(dataset_diagnosesgen_all))$conf.int[1]*100,
+         upperciperc = prop.test(total, nrow(dataset_diagnosesgen_all))$conf.int[2]*100)
+
 median(age.avail$age)
 quantile(age.avail$age, c(0.25,0.75))
 range(age.avail$age)
 
 #Premises type
+dataset_diagnosesgen_all %>% 
+  filter( premesiscategory != "undefined") %>% 
+  summarise(total = n()) %>% 
+  mutate(lowerciperc = prop.test (total, nrow(dataset_diagnosesgen_all))$conf.int[1]*100,
+         upperciperc = prop.test(total, nrow(dataset_diagnosesgen_all))$conf.int[2]*100)
+
 dataset_diagnosesgen_all %>% 
   filter( premesiscategory != "undefined") %>% 
   group_by(premesiscategory) %>% 
@@ -70,32 +143,24 @@ dataset_diagnosesgen_all %>%
   mutate(lowerciperc = prop.test (total, totalreported)$conf.int[1]*100,
          upperciperc = prop.test(total, totalreported)$conf.int[2]*100)
 
-
-#Sample types
-# Sample type
-dataset_diagnosessampletype %>% 
-  group_by(sampletype) %>% 
-  summarise(total = n()) %>%
-  mutate(percent = total / sum(total)*100) %>%
-  mutate (totalreported = sum(total)) %>% rowwise() %>% 
-  mutate(lowerciperc = prop.test (total, totalreported)$conf.int[1]*100,
-         upperciperc = prop.test(total, totalreported)$conf.int[2]*100)
-
-#Swab locations
-dataset_diagnosessampletype %>% 
-  filter(sampletype == 'swab') %>% 
-  group_by(samplelocation) %>% 
-  dplyr::summarise(total = n(), 
-                   perc = as.numeric(round(n()/nrow(dataset_diagnosessampletype %>% 
-                                                      filter(sampletype == 'swab'))*100,1))) %>% 
-  mutate(percprint = paste(perc,"%",sep ="")) %>% arrange(., desc(total)) %>%
-  rbind(c("Total",sum(as.numeric(.$total)),sum(as.numeric(.$perc)),paste(sum(as.numeric(.$perc)),"%",sep=""))) %>% 
-  filter(samplelocation == 'nasopharyngeal' | samplelocation == 'nasal' | samplelocation == 'abscess') %>%
-  rbind(c("other",nrow(dataset_diagnosessampletype %>% 
-                         filter(sampletype == 'swab')) - sum(as.numeric(.$total)),100-sum(as.numeric(.$perc)),paste(100-sum(as.numeric(.$perc)),"%",sep=""))) %>% select(-perc)
-
-
 # Individual sample results
+#Total requesting both PCR and Culture
+nrow(dataset_sampletestoutcome)
+
+
+indsampresults_base<-dataset_sampletestoutcome %>% 
+  janitor::tabyl(culture, qPCR)
+
+#Culture -; PCR +
+indsampresults_base %>% filter(culture == 'negative') %>% select(positive) %>% 
+  mutate(lowerciperc = prop.test(positive, nrow(dataset_sampletestoutcome))$conf.int[1]*100,
+         upperciperc = prop.test(positive, nrow(dataset_sampletestoutcome))$conf.int[2]*100)
+
+#Culture +; PCR +
+indsampresults_base %>% filter(culture == 'positive') %>% select(positive) %>% 
+  mutate(lowerciperc = prop.test(positive, nrow(dataset_sampletestoutcome))$conf.int[1]*100,
+         upperciperc = prop.test(positive, nrow(dataset_sampletestoutcome))$conf.int[2]*100)
+#2x2 table
 dataset_sampletestoutcome %>% 
   janitor::tabyl(culture, qPCR) %>% 
   adorn_totals(c("row", "col")) %>%
@@ -107,11 +172,11 @@ length(unique(dataset_clinicalsigns$strangleslogid)) #representing total number 
 prop.test(length(unique(dataset_clinicalsigns$strangleslogid)), nrow(dataset_diagnosesgen_all),
         conf.level = 0.95)
 
-(dataset_clinicalsigns.total<-dataset_clinicalsigns %>% group_by(cx) %>% 
+dataset_clinicalsigns.total<-dataset_clinicalsigns %>% group_by(cx) %>% 
   summarise(total = n()) %>%
   arrange(., desc(total)) %>% 
-  head(10) %>% 
-  rbind(c("other", as.numeric(nrow(dataset_clinicalsigns) - sum(.$total)))))
+  head(10) %>% mutate(cx = as.character(cx)) %>% 
+  rbind(c("other", as.numeric(nrow(dataset_clinicalsigns) - sum(.$total))))
 
 dataset_clinicalsigns.total$total<-as.integer(dataset_clinicalsigns.total$total)
 
@@ -131,7 +196,7 @@ setval<- as.integer(dataset_clinicalsigns %>% group_by(cx) %>%
 
 cxdata.spread<-spread(as.data.frame(table(dataset_clinicalsigns)), cx, Freq)
 
-upset(cxdata.spread, nsets = 10, nintersects = 20, mb.ratio = c(0.5, 0.5),
+upset(cxdata.spread, nsets = 10, nintersects = 10, mb.ratio = c(0.5, 0.5),
                     order.by = c("degree","freq"), decreasing = c(FALSE,TRUE),
                     matrix.color = "gray23", main.bar.color = "#24B4B4",
                     mainbar.y.label = "Frequency of\n reporting combinations (n)", 
@@ -143,24 +208,10 @@ upset(cxdata.spread, nsets = 10, nintersects = 20, mb.ratio = c(0.5, 0.5),
                     set_size.scale_max = setval
 )
 
-#Reason for sampling
-#Table 2
-dataset_samplereason %>% 
-  filter(samplereason != "undefined") %>% group_by(samplereason) %>% 
-  summarise(total = n(), perc = as.numeric(round(n()/nrow(dataset_samplereason%>% 
-                                                            filter(samplereason != "undefined"))*100,1))) %>% 
-  mutate(percent = total / sum(total)*100) %>%
-  mutate (totalreported = sum(total)) %>% rowwise() %>% 
-  mutate(lowerciperc = prop.test (total, totalreported)$conf.int[1]*100,
-         upperciperc = prop.test(total, totalreported)$conf.int[2]*100)
 
-#Number of diagnoses that had reason for sampling
-nrow(dataset_samplereason %>% 
-         filter(samplereason != "undefined") %>% 
-         select(strangleslogid) %>% distinct())
 
 #Decisions for sampling
-#focus on where clinically ill, posit-infection or ELISA were primary and only reasons for sampling
+#focus on where clinically ill, post-infection or ELISA were primary and only reasons for sampling
 dataset_sampledecisions_type<-dataset_sampledecisions_type %>% mutate(cx = ifelse(grepl('clinically ill',samplereasons2), TRUE, FALSE),
                                                pis = ifelse(grepl('post infection',samplereasons2), TRUE, FALSE),
                                                pselisa = ifelse(grepl('ELISA',samplereasons2), TRUE, FALSE)) %>% 
@@ -187,6 +238,8 @@ dataset_sampledecisions_type.summ<-dataset_sampledecisions_type.summ %>% ungroup
 #number of diagnoses that had one of the three prime reasons for sampling but not in combination with another prime reason
 #for sampling for the diagnoses as a whole. 
 sum(dataset_sampledecisions_type.summ$total) 
+
+dataset_sampledecisions_type.summ$samptype<-factor(dataset_sampledecisions_type.summ$samptype, levels = c("other","swab", "swab and GPL","GPL"))
 
 #Figure 3
 ggplot(data = dataset_sampledecisions_type.summ, aes(x = samptype, y = per, colour = reason)) + 
