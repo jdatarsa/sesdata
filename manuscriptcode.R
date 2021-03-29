@@ -21,7 +21,7 @@ dataset_diagnosesgen_all <-read.csv('./sesdata-master/dataset_diagnosesgen_all.c
 dataset_diagnosessampletype <-read.csv('./sesdata-master/dataset_diagnosessampletype.csv')
 dataset_clinicalsigns <-read.csv('./sesdata-master/dataset_clinicalsigns.csv')
 dataset_samplereason <-read.csv('./sesdata-master/dataset_samplereason.csv')
-dataset_sampledecisions_type <-read.csv('./sesdata-master/dataset_sampledecision.csv')
+dataset_sampledecisions_type <-read.csv('./sesdata-master/dataset_sampledecisions_type.csv')
 dataset_sampletestoutcome <-read.csv('./sesdata-master/dataset_sampletestoutcomes.csv')
 dataset_nuts3_base <-read.csv('./sesdata-master/dataset_nuts3_base.csv')
 
@@ -78,8 +78,8 @@ dataset_diagnosesgen_all %>%
 #Table 2: Reason for sampling
 #Number of diagnoses that had reason for sampling
 dataset_samplereason %>% 
-       filter(samplereason != "undefined") %>% 
-       select(strangleslogid) %>% distinct() %>% dplyr::summarise(total = n()) %>% 
+  filter(samplereason != "undefined") %>% 
+  select(strangleslogid) %>% distinct() %>% dplyr::summarise(total = n()) %>% 
   mutate(lowerciperc = prop.test (total, nrow(dataset_diagnosesgen_all))$conf.int[1]*100,
          upperciperc = prop.test(total, nrow(dataset_diagnosesgen_all))$conf.int[2]*100)
 
@@ -149,7 +149,7 @@ nrow(dataset_sampletestoutcome)
 
 
 indsampresults_base<-dataset_sampletestoutcome %>% 
-  janitor::tabyl(culture, qPCR)
+  janitor::tabyl(culture, qpcr)
 
 #Culture -; PCR +
 indsampresults_base %>% filter(culture == 'negative') %>% select(positive) %>% 
@@ -162,7 +162,7 @@ indsampresults_base %>% filter(culture == 'positive') %>% select(positive) %>%
          upperciperc = prop.test(positive, nrow(dataset_sampletestoutcome))$conf.int[2]*100)
 #2x2 table
 dataset_sampletestoutcome %>% 
-  janitor::tabyl(culture, qPCR) %>% 
+  janitor::tabyl(culture, qpcr) %>% 
   adorn_totals(c("row", "col")) %>%
   adorn_title
 
@@ -170,7 +170,7 @@ dataset_sampletestoutcome %>%
 nrow(dataset_clinicalsigns) #Total number reported
 length(unique(dataset_clinicalsigns$strangleslogid)) #representing total number of diagnoses
 prop.test(length(unique(dataset_clinicalsigns$strangleslogid)), nrow(dataset_diagnosesgen_all),
-        conf.level = 0.95)
+          conf.level = 0.95)
 
 dataset_clinicalsigns.total<-dataset_clinicalsigns %>% group_by(cx) %>% 
   summarise(total = n()) %>%
@@ -187,7 +187,7 @@ dataset_clinicalsigns.total %>%
   mutate(lowerciperc = prop.test (total, totalreported)$conf.int[1]*100,
          upperciperc = prop.test(total, totalreported)$conf.int[2]*100)
 
-#Figure 2
+#Figure 1
 setval<- as.integer(dataset_clinicalsigns %>% group_by(cx) %>% 
                       dplyr::summarise(total = n()) %>% 
                       arrange(desc(total)) %>% 
@@ -197,72 +197,73 @@ setval<- as.integer(dataset_clinicalsigns %>% group_by(cx) %>%
 cxdata.spread<-spread(as.data.frame(table(dataset_clinicalsigns)), cx, Freq)
 
 upset(cxdata.spread, nsets = 10, nintersects = 10, mb.ratio = c(0.5, 0.5),
-                    order.by = c("degree","freq"), decreasing = c(FALSE,TRUE),
-                    matrix.color = "gray23", main.bar.color = "#24B4B4",
-                    mainbar.y.label = "Frequency of\n reporting combinations (n)", 
-                    mainbar.y.max = NULL,
-                    sets.bar.color = "gray23", 
-                    sets.x.label = "Clinical sign reported (n)",
-                    set_size.show = TRUE,
-                    text.scale = 1.5, 
-                    set_size.scale_max = setval
+      order.by = c("degree","freq"), decreasing = c(FALSE,TRUE),
+      matrix.color = "gray23", main.bar.color = "#24B4B4",
+      mainbar.y.label = "Frequency of\n reporting combinations (n)", 
+      mainbar.y.max = NULL,
+      sets.bar.color = "gray23", 
+      sets.x.label = "Clinical sign reported (n)",
+      set_size.show = TRUE,
+      text.scale = 1.5, 
+      set_size.scale_max = setval
 )
-
 
 
 #Decisions for sampling
 #focus on where clinically ill, post-infection or ELISA were primary and only reasons for sampling
 dataset_sampledecisions_type<-dataset_sampledecisions_type %>% mutate(cx = ifelse(grepl('clinically ill',samplereasons2), TRUE, FALSE),
-                                               pis = ifelse(grepl('post infection',samplereasons2), TRUE, FALSE),
-                                               pselisa = ifelse(grepl('ELISA',samplereasons2), TRUE, FALSE)) %>% 
+                                                                      pis = ifelse(grepl('post infection',samplereasons2), TRUE, FALSE),
+                                                                      pselisa = ifelse(grepl('ELISA',samplereasons2), TRUE, FALSE)) %>% 
   filter(cx == TRUE | pis == TRUE | pselisa == TRUE)
 
 # select sample types focusing primarily on GPW and swabs
 dataset_sampledecisions_type<-dataset_sampledecisions_type %>% mutate(swab = ifelse(grepl('swab',sampletypes2), TRUE, FALSE),
-                      wash = ifelse(grepl('guttural pouch wash',sampletypes2), TRUE, FALSE))
+                                                                      wash = ifelse(grepl('guttural pouch wash',sampletypes2), TRUE, FALSE))
 
 # extract where multiple sample reasons did not occur
 dataset_sampledecisions_type<- dataset_sampledecisions_type %>%  mutate(checking = cx + pis + pselisa) %>%  filter(checking == 1)
 dataset_sampledecisions_type.summ<-dataset_sampledecisions_type %>%  group_by(cx, pis, pselisa, swab, wash) %>% dplyr::summarise(total = n())
 
 dataset_sampledecisions_type.summ<-dataset_sampledecisions_type.summ %>% mutate(reason = ifelse(cx == TRUE,'cx',ifelse(pis == TRUE,'pis','pselisa')),
-                      samptype = ifelse(swab == TRUE & wash == TRUE, 'swab and GPL', (ifelse(swab == TRUE, 'swab', (ifelse(wash == TRUE, 'GPL', 'other')))))) 
+                                                                                samptype = ifelse(swab == TRUE & wash == TRUE, 'swab and GPL', (ifelse(swab == TRUE, 'swab', (ifelse(wash == TRUE, 'GPL', 'other')))))) 
 
 dataset_sampledecisions_type.summ<-dataset_sampledecisions_type.summ %>% ungroup() %>% select(reason, samptype, total)
 
 (dataset_sampledecisions_type.summ<-dataset_sampledecisions_type.summ %>% group_by(reason) %>% mutate(totalN = sum(total)) %>%  rowwise() %>% 
-  mutate(per=total/totalN*100,
-         lowerci = prop.test(total, totalN)$conf.int[1]*100,
-         upperci = prop.test(total, totalN)$conf.int[2]*100))
+    mutate(per=total/totalN*100,
+           lowerci = prop.test(total, totalN)$conf.int[1]*100,
+           upperci = prop.test(total, totalN)$conf.int[2]*100))
 
 #number of diagnoses that had one of the three prime reasons for sampling but not in combination with another prime reason
 #for sampling for the diagnoses as a whole. 
 sum(dataset_sampledecisions_type.summ$total) 
 
-dataset_sampledecisions_type.summ$samptype<-factor(dataset_sampledecisions_type.summ$samptype, levels = c("other","swab", "swab and GPL","GPL"))
+dataset_sampledecisions_type.summ$samptype<-
+  factor(dataset_sampledecisions_type.summ$samptype, levels = c("GPL", "other","swab", "swab and GPL"))
 
-#Figure 3
-ggplot(data = dataset_sampledecisions_type.summ, aes(x = samptype, y = per, colour = reason)) + 
+fig2<-ggplot(data = dataset_sampledecisions_type.summ, aes(x = samptype, y = per, colour = reason)) +
   geom_pointrange(aes(ymin = lowerci, ymax = upperci),
-                       position = position_dodge(width = 0.25), size=1) + 
-  geom_errorbar(aes(ymin = lowerci, ymax = upperci),
-                position = position_dodge(width = 0.25), size=1, width = 0.2,
-                show.legend = FALSE) + 
-  scale_color_discrete(name = "Sample reason", labels = c("Clinically ill","Post-infection screening","Positive ELISA follow up")) +
-  scale_x_discrete(labels = c("Other","Swab","Swab and GPL","GPL")) + 
+                  position = position_dodge(width = 0.25), size=0.7) +
+  scale_color_manual(name = "Reason for sampling",
+                     labels = c("Clinically ill","Post infection screening","Post positive strangles iELISA"),
+                     values=c("#44aa99", "#88ccee", "#000000")) +
+  scale_x_discrete(labels = c("GPL", "other","swab", "swab and GPL")) +
   xlab("Sample type") +
-  ylab("Percentage") + 
-  theme(axis.text.x = element_text(size = rel(2))) +
-  theme(axis.text.y = element_text(size = rel(2))) +
-  theme(axis.title.x = element_text(size = rel(3))) +
-  theme(axis.title.y = element_text(size = rel(3))) + 
-  theme(legend.title=element_text(size=rel(2))) +
-  theme(legend.text=element_text(size=rel(1.5))) +
-  theme(panel.grid.major = element_blank(), 
+  ylab("Percentage") +
+  theme(axis.text.x = element_text(size = rel(1.5))) +
+  theme(axis.text.y = element_text(size = rel(1.5))) +
+  theme(axis.title.x = element_text(size = rel(1.5))) +
+  theme(axis.title.y = element_text(size = rel(1.5))) +
+  theme(legend.title=element_text(size=rel(1.5))) +
+  theme(legend.text=element_text(size=rel(1))) +
+  theme(panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
-        panel.background = element_blank())  + 
+        panel.background = element_blank())  +
   theme(axis.line.x = element_line(color="black", size = 1),
         axis.line.y = element_line(color="black", size = 1))
+
+ggsave("Figure2.pdf",
+       width = 30, height = 20, units = "cm",dpi = 600)
 
 # Spatial information
 # Unique veterinarians submitting information
@@ -271,19 +272,19 @@ length(unique(dataset_diagnosesgen_all$submittingvet_prim))
 # Percentage of nuts 3 areas reported from
 length(unique(dataset_diagnosesgen_all$nuts3gid))/nrow(dataset_nuts3_base)
 
-# Total submitting vet practices - Figure 4A
+# Total submitting vet practices - Figure 3A
 dataset_diagnosesgen_all %>% 
   select(nuts3gid, submittingvet_prim) %>% 
   distinct() %>% 
   group_by(nuts3gid) %>% 
   summarise(totalvetssubmittingperregion = n())
 
-# Total diagnoses per region - Figure 4B
+# Total diagnoses per region - Figure 3B
 dataset_diagnosesgen_all %>% 
   group_by(nuts3gid) %>% 
   summarise(totaldiagnosesperregion = n())
 
-# Average number of diagnoses per submitting vet practice per region - Figure 4C
+# Average number of diagnoses per submitting vet practice per region - Figure 3C
 dataset_diagnosesgen_all.summ.region.submittingvets<-dataset_diagnosesgen_all %>% 
   group_by(submittingvet_prim, nuts3gid) %>% 
   summarise(diagnosesbyvetpracticebyregion = n()) %>% ungroup() %>% 
@@ -291,6 +292,7 @@ dataset_diagnosesgen_all.summ.region.submittingvets<-dataset_diagnosesgen_all %>
 
 mean(dataset_diagnosesgen_all.summ.region.submittingvets$`mean(diagnosesbyvetpracticebyregion)`)
 sd(dataset_diagnosesgen_all.summ.region.submittingvets$`mean(diagnosesbyvetpracticebyregion)`)
+range(dataset_diagnosesgen_all.summ.region.submittingvets$`mean(diagnosesbyvetpracticebyregion)`)
 
 #Percentage diagnoses by region 
 dataset_diagnosesgen_all %>% 
@@ -301,4 +303,3 @@ dataset_diagnosesgen_all %>%
                                                         inner_join(dataset_nuts3_base, by = c("nuts3gid" = "gid")))*100,1))) %>% 
   arrange(desc(percentageraw)) %>% #to arrange alphabetically -> arrange(nuts_name)#
   mutate(percentagediagnoses = paste(percentageraw, "%" ,sep =""))
-
