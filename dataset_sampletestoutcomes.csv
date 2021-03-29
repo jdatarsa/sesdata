@@ -1,4 +1,4 @@
-"sampledetailid","culture","qPCR"
+"sampledetailid","culture","qpcr"
 1,"negative","positive"
 2,"negative","positive"
 3,"negative","positive"
@@ -233,7 +233,6 @@
 257,"negative","positive"
 258,"positive","positive"
 259,"positive","positive"
-260,"positive","negative"
 261,"negative","positive"
 262,"negative","positive"
 263,"positive","positive"
