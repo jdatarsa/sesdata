@@ -24,7 +24,7 @@ The descriptive analysis for the manuscript was performed using R. The full code
     -  `submittinglab_prim` denotes the primary laboratory submitting data relating to the diagnosis
     -  `result` denotes the distinct aggregated test methods used for _S.equi_ positive results for each diagnosis  
 
--  **_dataset_diagnosessampletype.csv_** represents the sample types (`sampletype`) and sample locations (horse - `samplelocation`) for each diagnosis (`strangleslogid`) where multiple lines may represent a single diagnosis - i.e. multiple sample types and from multiple locations were registered per diagnosis.  
+-  **_dataset_diagnosessampletype.csv_** represents the sample types (`sampletype`) and sample locations (horse - `samplelocation`) for each diagnosis (`strangleslogid`) where multiple lines (`sampletypeid`) may represent a single diagnosis - i.e. multiple sample types and from multiple locations were registered per diagnosis.  
 
 -  **_dataset_clinicalsigns.csv_** represents the clinical signs noted for each strangles diagnosis. As with the _dataset_diagnosessampletype_ dataset, multiple clinical signs (`cx`) are associated with a distinct diagnosis (`strangleslogid`).
 
@@ -34,7 +34,7 @@ The descriptive analysis for the manuscript was performed using R. The full code
 
 -  **_dataset_sampletestoutcome.csv_** represents the _S.equi_ culture (`culture`) and real-time PCR (`qPCR`) results for each sample where at least one of these tests had a positive result. `sampledetailid` is the unique identifier for each sample tested and is not used further in this analysis.
 
--  **_dataset_nuts3_base.csv_** is used to facilitate aggregation of diagnoses to spatial locations using table joins (rather than spatial joins) and the `gid` field correlates to the `gid` field in the GIS dataset _nuts3_regions.shp_ below. `nuts_name` denotes the name of the region.
+-  **_dataset_nuts3_base.csv_** is used to facilitate aggregation of diagnoses to spatial locations using table joins (rather than spatial joins) and the `gid` field correlates to the `gid` field in the GIS dataset _nuts3_regions.shp_ below. `nuts_name` denotes the name of the region. `status` denotes whether that area has a positive diagnosis during the period studied.
 
 
 ### GIS (Spatial) datasets
